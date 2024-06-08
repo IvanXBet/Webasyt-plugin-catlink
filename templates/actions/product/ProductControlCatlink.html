@@ -1,0 +1,170 @@
+<link rel="stylesheet" type="text/css" href="{$wa_app_static_url}plugins/catlink/css/control.css?v=1.1">
+<script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/cookie.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/fsend.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/gofileupload.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/bpopup.js"></script>
+<style>
+    .ctl-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    .ctl-title {
+        color: #495057;
+        text-align: center;
+    }
+
+    .category-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .category-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .category-item:last-child {
+        border-bottom: none;
+    }
+
+    .category-name {
+        font-size: 1rem;
+        color: #212529;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 20px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 10px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: #28a745;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(20px);
+    }
+
+    .clt-message {
+        display: none;
+        margin-top: 20px;
+        padding: 10px;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    .message.success {
+        background-color: #28a745;
+        color: #fff;
+    }
+
+    .message.error {
+        background-color: #dc3545;
+        color: #fff;
+    }
+</style>
+
+<div class="ctl-container" >
+    <h1 class="ctl-title">Продукт: {$product['name']|escape}</h1>
+        {if $categories|@count > 0}
+            <h2>Доступные категории:</h2>
+            <input type="hidden" name="data[product_id]" value="{$product['id']}">
+            <ul class="category-list" data-id="{$product['id']}">
+                {foreach $categories as $category}
+                    <li class="category-item">
+                        <span class="category-name">{$category.name|escape}</span>
+                        <label class="switch">
+                            <input type="checkbox" name="category" value="{$category.id}" {if in_array($category.id, $catlink_categories)}checked{/if}>
+                            <span class="slider"></span>
+                        </label>
+                    </li>
+                {/foreach}
+            </ul>
+            {$wa->csrf()}
+            <div class="clt-message success"></div>
+        {else}
+            <p>Нет доступных категорий для добавления.</p>
+        {/if}
+</div>
+
+
+
+
+
+{literal}
+<script type="text/javascript">
+(function($) {
+    $.catlinkControl = {
+        product_id: null,
+        categories: null,
+        init: function() {
+            this.categories = $('.category-list');
+            this.product_id = this.categories.attr('data-id');
+            this.initCategoriesCheck();
+        },
+
+        initCategoriesCheck: function() {
+            var self = this;
+            this.categories.find('input[name=category]').each(function() {
+                $(this).on('change', function(e) {
+                    var data = {
+                        productId: self.product_id,
+                        categoryId: $(this).val(),
+                        isChecked: $(this).prop('checked'),
+                    }
+                    
+                    $.post('?plugin=catlink&module=product&action=update', data, function(jData) {
+                            
+                        }, 'json');
+                    });
+                });
+        },
+
+    }
+})(jQuery);
+$(document).ready(function() {
+    $.catlinkControl.init();
+})
+</script>
+{/literal}
+

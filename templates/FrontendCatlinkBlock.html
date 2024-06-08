@@ -1,0 +1,65 @@
+<div class="ctl-container">
+    <h2 class="ctl-title">Ссылки на похожие категории</h2>
+    <ul class="ctl-category-list">
+        {foreach $ctl_categories as $category}
+            <li class="ctl-category-item">
+                <a href="{$category.url}" class="ctl-category-link">
+                    {$category.name|escape}
+                </a>
+            </li>
+        {/foreach}
+    </ul>
+</div>
+
+<style>
+/* Контейнер для ссылок */
+.ctl-container {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+}
+
+/* Заголовок */
+.ctl-title {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    color: #343a40;
+}
+
+/* Список категорий */
+.ctl-category-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Элементы списка */
+.ctl-category-item {
+    margin-bottom: 10px;
+}
+
+/* Ссылки на категории */
+.ctl-category-link {
+    display: inline-block;
+    text-decoration: none;
+    color: #007bff;
+    padding: 10px 15px;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.ctl-category-link:hover,
+.ctl-category-link:focus {
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+}
+</style>
+
+
+        
+        
+ 
