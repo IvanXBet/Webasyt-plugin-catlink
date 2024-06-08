@@ -34,7 +34,6 @@ class shopCatlinkPlugin  extends shopPlugin
 				if (!is_array($add_category)) {
 			$add_category = [];
 		}
-		print_r($add_category);
 
 		$category_ids = array();
 
@@ -50,8 +49,12 @@ class shopCatlinkPlugin  extends shopPlugin
 		// Получить детали категорий по ID
 		$categories = $category_model->getById($category_ids);
 		foreach ($categories as &$category) {
-			$category['url'] = wa()->getRouting()->getUrl('frontend/category', array('category_id' => $category['id']));
+			$category['url'] = wa()->getRouteUrl(
+				'shop/frontend/category',
+				array('category_url' => $category['full_url'])
+			);
 		}
+		
 		unset($category);
 		// Подготовить данные для шаблона
 		
