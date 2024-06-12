@@ -2,139 +2,169 @@
 <link rel="stylesheet" type="text/css" href="{$wa_app_static_url}plugins/catlink/css/select2.css">
 <script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/cookie.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/fsend.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}plugins/tilesfo/js/fsortable.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/gofileupload.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/bpopup.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/select2.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/select2_locale_ru.js"></script>
 <style>
     .ctl-container {
-        max-width: 800px;
-        margin: 40px auto;
-        padding: 20px;
-        background: #ffffff;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
+        max-width: 700px;
     }
-
-    .ctl-title {
-        color: #495057;
-    }
-
     .category-list {
         list-style: none;
         padding: 0;
     }
-
-    .category-item {
+    .ctl-tb-btn-delete{
+        cursor: pointer;
+    }
+    .ctl-dt-wrap {
+        overflow-x: auto;
+    }
+    .ctl-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .ctl-panel {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 10px 0;
-        border-bottom: 1px solid #e9ecef;
+        min-width: 100%;
     }
-
-    .category-item:last-child {
-        border-bottom: none;
-    }
-
-    .category-name {
-        font-size: 1rem;
-        color: #212529;
-    }
-
-    .switch {
-        position: relative;
-        display: inline-block;
-        width: 40px;
-        height: 20px;
-    }
-
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        transition: 0.4s;
-        border-radius: 10px;
-    }
-
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 16px;
-        width: 16px;
-        left: 2px;
-        bottom: 2px;
-        background-color: white;
-        transition: 0.4s;
-        border-radius: 50%;
-    }
-
-    input:checked + .slider {
-        background-color: #28a745;
-    }
-
-    input:checked + .slider:before {
-        transform: translateX(20px);
-    }
-
-    .clt-message {
-        display: none;
-        margin-top: 20px;
-        padding: 10px;
-        border-radius: 4px;
-        text-align: center;
-    }
-
-    .message.success {
-        background-color: #28a745;
-        color: #fff;
-    }
-
-    .message.error {
-        background-color: #dc3545;
-        color: #fff;
+    .select2-container {
+        width: 100%;
     }
 </style>
  
-<select id="categoriesSelect" data-id="{$product_id|escape}" style="width: 100%;"></select>
+<div class="ctl-container">
+    <div class="ctl-panel" >
+        <select id="categoriesSelect" data-id="{$product_id|escape}" ">
+            <option value="0">Выберите категорию</option>
+        </select>
+        <div style="display: flex; align-items: center; margin-left: 10px;">
+            <button class="button green ctl-btn-add">Добавить</button> 
+            <span class="btn-message-add" style="display: block; margin-left: 10px;"></span>
+        </div>
+    </div>
 
-
-
-
-
+    <div class="ctl-dt-wrap">
+        <table class="ctl-table zebra mt15" data-Url="?plugin=pdd&module=file&action=listCat">
+            <thead>
+                <tr>
+                    <th width="1"></th>
+                    <th>Добавленные категории</th>
+                    <th width="1"></th>
+                </tr>
+            </thead>
+            <tbody id="sortable"></tbody>
+        </table>
+    </div>
+</div>
 
 {literal}
 <script type="text/javascript">
 (function($) {
     $.catlinkControl = {
-        product_id: null,
+        productId: null,
         select: null,
+        msgBtn: null,
         init: function() {
             var self = this;
             this.select = $('#categoriesSelect');
-            this.product_id = this.select.attr('data-id');
+            this.productId = this.select.attr('data-id');
+            this.msgBtn = $('.btn-message-add');
 
             this.initSelect();
+            this.initAddBtn();
+            this.initTable();
+            this.initSort();
         },
 
         initSelect: function() {
             var self = this;
+            $.post('?plugin=catlink&module=category&action=get', function(jData) {
+                self.select.empty();
+                $.each(jData.data.Categories, function(index, item) {
+                   
+                    self.select.append($('<option>', {
+                        value: item.id,
+                        text: item.path,
+                        'data-id': item.id,
+                    }));
+                });
+            });
+            self.select.append($('<option>', ));
             this.select.select2();
-            
-            $.post('?plugin=catlink&module=product&action=getcat', function(jData) {
-                console.log(jData);
+        },
+
+        initAddBtn: function() {
+            var self = this;
+            $('.ctl-btn-add').click(function() {
+                var selectedCategory = self.select.select2('data'); 
+                if (selectedCategory.id != 0) {
+                    $.post('?plugin=catlink&module=category&action=add', { 
+                        productId:self.productId, 
+                        categoryId: selectedCategory.id, 
+                        name: selectedCategory.text
+                    }, function(jData) {
+                        
+                        self.msgBtn.css('color', 'green');
+                        self.msgBtn.text(jData.data[0].message).show();
+                        setTimeout(function() {
+                            self.msgBtn.hide(); 
+                        }, 5000);
+                        self.initTable();
+                    });
+                } else {
+                    self.msgBtn.css('color', 'red');
+                    self.msgBtn.text("Выберите категорию").show();
+                    setTimeout(function() {
+                                self.msgBtn.hide(); 
+                    }, 5000);
+                }
             });
         },
+
+        initTable: function() {
+            var self = this;
+            $.post('?plugin=catlink&module=Category&action=list', {productId: self.productId},  function(jData) {
+                var tableBody = $('.ctl-table tbody'); 
+                tableBody.empty();
+                $.each(jData.data, function(index, category) {
+                    var row = $(`<tr id="${category.id}" data-categoryId ="${category.category_id}">`); 
+                    row.append('<td> <i class="icon16 sort ctl-tb-btn-sort"></i> </td>'); 
+                    row.append(`<td data-id="${category.id}">` + category.name + '</td>');
+                    row.append('<td> <i class="icon16 delete ctl-tb-btn-delete" title="Удалить"></i> </td>'); 
+                    
+                    tableBody.append(row); 
+
+                    row.find('.ctl-tb-btn-delete').click(function() {
+                        var categoryId = $(this).closest('tr').attr('data-categoryId');
+                        $.post('?plugin=catlink&module=category&action=delete', { 
+                            productId: self.productId, 
+                            categoryId: categoryId
+                        }, function(jData) {
+                            self.initTable();
+                        });
+                    });
+                });
+            });
+            
+            $('#sortable').sortable();
+        },
+
+        initSort: function() {
+			var self = this;
+            $('#sortable').sortable({
+                update: function() {
+                    const categories = `categories= ${$(this).sortable("toArray").join(',')}`;
+                    $.ajax({
+                        method: 'post',
+                        url: '?plugin=catlink&module=category&action=sort',
+                        data: categories,
+                    }, 'json');
+                }
+            });
+		},
     }
 })(jQuery);
 $(document).ready(function() {

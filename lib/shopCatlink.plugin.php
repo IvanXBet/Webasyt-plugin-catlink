@@ -65,39 +65,116 @@ class shopCatlinkPlugin  extends shopPlugin
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Работа с категориями 
 	/////////////////////////////////////////////////////////////////////////////////////
-
-
-	public function updateCategory($data) 
+	public function getFormattedCategories() 
 	{
-		$catlink_model = new shopCatlinkPluginProductCategoryModel();
-		$isChecked = $data['is_checked'];
-		if (!isset($data['product_id']) || empty($data['product_id'])) {
-			return array('result' => 0, 'message' => 'Продукт не найден', 'data' => $data);
+		$category_model = new shopCategoryModel();
+		$categories = $category_model->getAll();
+
+		$formatted_categories = array();
+		foreach ($categories as $category) {
+			$category_path = self::getCategoryPathById( $categories, $category['id']);
+			$formatted_categories[] = array(
+				'id' => $category['id'],
+				'name' => $category['name'],
+				'path' => $category_path
+			);
 		}
-		if(!($isChecked === 'true' || $isChecked === 'false')) {
-			return array('result' => 0, 'message' => 'Ошибка сохранения', 'data' => $data);
+
+		return array('result' => 1, 'Categories' => $formatted_categories);
+	}
+
+	function getCategoryPathById($categories, $category_id) {
+		
+		$category = null;
+		foreach ($categories as $cat) {
+			if ($cat['id'] == $category_id) {
+				$category = $cat;
+				break;
+			}
+		}
+
+		if (!$category) {
+			return null; 
 		}
 		
-		$data = array(
+		$path = $category['name'];
+		$parent_id = $category['parent_id'];
+		while ($parent_id != 0) {
+			$parent_category = null;
+			foreach ($categories as $cat) {
+				if ($cat['id'] == $parent_id) {
+					$parent_category = $cat;
+					break;
+				}
+			}
+			if (!$parent_category) {
+				break; 
+			}
+			$path = $parent_category['name'] . ' > ' . $path;
+			$parent_id = $parent_category['parent_id'];
+		}
+
+		return $path;
+	}
+
+	public function addCategory($data) 
+	{
+		$catlink_model = new shopCatlinkPluginProductCategoryModel();
+		
+		if (!isset($data['product_id']) || empty($data['product_id'])) {
+			$result[] = array('result' => 0, 'message' => 'Продукт не найден', 'data' => $data);
+		}
+		else 
+		{
+			$product_id = $catlink_model->escape($data['product_id']);
+			$data = array(
+				'product_id' => $product_id,
+				'category_id' => $catlink_model->escape($data['category_id']),
+				'name' => $catlink_model->escape($data['name']),
+				'sort' => $catlink_model->getMaxSort($product_id)+1,
+			);
+			if($catlink_model->getByField($data))
+			{
+				$result[] = array('result' => 0, 'message' => 'Эта категория уже добавлена');
+			}
+			else{
+				$catlink_model->insert($data);
+				$result[] = array('result' => 1, 'message' => 'Категория добавлена к продукту');
+			}
+		}
+		return $result;
+	}
+
+	public function sortCategory($cat) 
+	{
+		if(!count($cat)) {return array('result' => 0, 'message' => 'Не заданн список для сортировки');}
+		$catlink_model = new shopCatlinkPluginProductCategoryModel();
+		return $catlink_model->sortSets($cat);
+	}
+	
+
+	public function deleteCategory($data) 
+	{
+		
+		if (!isset($data['product_id']) || empty($data['product_id'])) {
+			$result[] = array('result' => 0, 'message' => 'Продукт не найден', 'data' => $data);
+		}
+		else
+		{
+			$catlink_model = new shopCatlinkPluginProductCategoryModel();
+			$data = array(
 				'product_id' => $catlink_model->escape($data['product_id']),
 				'category_id' => $catlink_model->escape($data['category_id']),
 			);
-
-		if($isChecked === 'true')
-		{
-			if($catlink_model->getByField($data))
+			
+			$res = $catlink_model->deleteByField($data);
+			if(!$res)
 			{
-				return $result[] = array('result' => 0, 'message' => 'Этоа категория уже добавлена');
+				$result[]= array('result' => 1, 'message' => 'Ошибка удаления');
 			}
-			$catlink_model->insert($data);
-			$result[] = array('result' => 1, 'message' => 'Категория добавлена к продукту');
+			$result[]= array('result' => 1, 'message' => 'Успешное удаление', 'asdf' => $data);
 		}
 		
-		if($isChecked === 'false') 
-		{
-			$catlink_model->deleteByField($data);
-			$result[] = array('result' => 1, 'message' => 'Категория откреплена от продукта');
-		}
 		return $result;
 	}
 }

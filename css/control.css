@@ -37,25 +37,25 @@
 .mass-actions-cpt i:not(.loading) {filter: brightness(0) invert(1);}
 
 /* POPUP */
-.gfo-popup {background: white; width: 730px; border-radius: 3px;}
-.gfo-popup-cpt {padding: 10px; border-bottom: 1px solid lightgray;}
-.gfo-popup-cpt .b-close {float: right; margin-top: 0px;}
-.gfo-popup-cpt h3 {margin-bottom: 0;}
-.gfo-popup-cnt {padding: 10px;}
+.lcat-popup {background: white; width: 730px; border-radius: 3px;}
+.lcat-popup-cpt {padding: 10px; border-bottom: 1px solid lightgray;}
+.lcat-popup-cpt .b-close {float: right; margin-top: 0px;}
+.lcat-popup-cpt h3 {margin-bottom: 0;}
+.lcat-popup-cnt {padding: 10px;}
 
 /* COMMON */
-.gfo-highlight {font-weight: bold; color: black;}
-.gfo-item-files-remove-dialog {margin: 5px 0;}
+.lcat-highlight {font-weight: bold; color: black;}
+.lcat-item-files-remove-dialog {margin: 5px 0;}
 
 /* SELECT2 */
-.gfo-file-remove-dropdown ul:has(> .select2-no-results) {display: none !important;}
+.lcat-file-remove-dropdown ul:has(> .select2-no-results) {display: none !important;}
 
 /* TABLE REMOVE SET DIALOG  */
-.gfo-sets-to-file-header {background: lightgray;}
-.gfo-remove-dialog-message {margin: 10px 0;}
+.lcat-sets-to-file-header {background: lightgray;}
+.lcat-remove-dialog-message {margin: 10px 0;}
 
 /* SET EDIT TABLE GRID */
-.gfo-set-block.edit-grid, .gfo-set-product
+.lcat-set-block.edit-grid, .lcat-set-product
 {
     display: grid;
     grid-template-columns: 1fr 1fr;
