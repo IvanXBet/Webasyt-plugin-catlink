@@ -1,8 +1,11 @@
 <link rel="stylesheet" type="text/css" href="{$wa_app_static_url}plugins/catlink/css/control.css?v=1.1">
+<link rel="stylesheet" type="text/css" href="{$wa_app_static_url}plugins/catlink/css/select2.css">
 <script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/cookie.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/fsend.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/gofileupload.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/bpopup.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/select2.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}plugins/catlink/js/select2_locale_ru.js"></script>
 <style>
     .ctl-container {
         max-width: 800px;
@@ -15,7 +18,6 @@
 
     .ctl-title {
         color: #495057;
-        text-align: center;
     }
 
     .category-list {
@@ -103,29 +105,9 @@
         color: #fff;
     }
 </style>
+ 
+<select id="categoriesSelect" data-id="{$product_id|escape}" style="width: 100%;"></select>
 
-<div class="ctl-container" >
-    <h1 class="ctl-title">Продукт: {$product['name']|escape}</h1>
-        {if $categories|@count > 0}
-            <h2>Доступные категории:</h2>
-            <input type="hidden" name="data[product_id]" value="{$product['id']}">
-            <ul class="category-list" data-id="{$product['id']}">
-                {foreach $categories as $category}
-                    <li class="category-item">
-                        <span class="category-name">{$category.name|escape}</span>
-                        <label class="switch">
-                            <input type="checkbox" name="category" value="{$category.id}" {if in_array($category.id, $catlink_categories)}checked{/if}>
-                            <span class="slider"></span>
-                        </label>
-                    </li>
-                {/foreach}
-            </ul>
-            {$wa->csrf()}
-            <div class="clt-message success"></div>
-        {else}
-            <p>Нет доступных категорий для добавления.</p>
-        {/if}
-</div>
 
 
 
@@ -136,30 +118,23 @@
 (function($) {
     $.catlinkControl = {
         product_id: null,
-        categories: null,
+        select: null,
         init: function() {
-            this.categories = $('.category-list');
-            this.product_id = this.categories.attr('data-id');
-            this.initCategoriesCheck();
-        },
-
-        initCategoriesCheck: function() {
             var self = this;
-            this.categories.find('input[name=category]').each(function() {
-                $(this).on('change', function(e) {
-                    var data = {
-                        productId: self.product_id,
-                        categoryId: $(this).val(),
-                        isChecked: $(this).prop('checked'),
-                    }
-                    
-                    $.post('?plugin=catlink&module=product&action=update', data, function(jData) {
-                            
-                        }, 'json');
-                    });
-                });
+            this.select = $('#categoriesSelect');
+            this.product_id = this.select.attr('data-id');
+
+            this.initSelect();
         },
 
+        initSelect: function() {
+            var self = this;
+            this.select.select2();
+            
+            $.post('?plugin=catlink&module=product&action=getcat', function(jData) {
+                console.log(jData);
+            });
+        },
     }
 })(jQuery);
 $(document).ready(function() {
@@ -167,4 +142,3 @@ $(document).ready(function() {
 })
 </script>
 {/literal}
-
